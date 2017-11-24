@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lovego/xiaomei/utils/mailer"
+	"github.com/lovego/mailer"
 )
 
 var testMailSender = getTestMailSender()

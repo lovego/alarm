@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/lovego/email"
-	"github.com/lovego/xiaomei/utils/mailer"
+	"github.com/lovego/mailer"
 )
 
 type Sender interface {
