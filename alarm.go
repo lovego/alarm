@@ -10,7 +10,7 @@ import (
 type Alarm struct {
 	prefix        string
 	sender        Sender
-	min, inc, max time.Duration // 发送间隔时间最小值，最大值，增加值
+	min, inc, max time.Duration // 发送间隔时间最小值，增加值，最大值
 	sync.Mutex
 	alarms map[string]*alarm
 }

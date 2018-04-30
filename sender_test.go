@@ -19,13 +19,13 @@ func getTestMailSender() Sender {
 	}
 
 	return MailSender{
-		Receivers: []string{"侯志良<houzhiliang@retail-tek.com>"},
+		Receivers: []string{"applejava<applejava@qq.com>"},
 		Mailer:    theMailer,
 	}
 }
 
 func TestMailAlarm(t *testing.T) {
-	alarm := New(`测试`, testMailSender, 0, time.Second, 10*time.Second)
+	alarm := New(`alarm测试`, testMailSender, 0, time.Second, 10*time.Second)
 	alarm.Alarm(`title`, `content`, `mergeKey`)
 	time.Sleep(3 * time.Second) // wait the alarms been sent
 }
