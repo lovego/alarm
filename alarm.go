@@ -1,3 +1,4 @@
+// Alarm合并报警邮件，防止在出错高峰，收到大量重复报警邮件，甚至因为邮件过多导致发送失败、接收失败。
 package alarm
 
 import (
@@ -5,8 +6,6 @@ import (
 	"time"
 )
 
-// Alarm合并报警邮件，防止在出错高峰，收到大量重复报警邮件，
-// 甚至因为邮件过多导致发送失败、接收失败。
 type Alarm struct {
 	prefix        string
 	sender        Sender
