@@ -20,7 +20,7 @@ type option func(*Alarm)
 // SetPrefix set the prefix of email title
 func SetPrefix(pre string) option {
 	return func(a *Alarm) {
-		a.prefix = pre
+		a.prefix = pre + ` `
 	}
 }
 
@@ -60,7 +60,7 @@ func (alm *Alarm) Alarm(title, content, mergeKey string) {
 
 // logger will use
 func (alm *Alarm) Send(title, content string) {
-	alm.sender.Send(alm.prefix+` `+title, content, Context{})
+	alm.sender.Send(alm.prefix+title, content, Context{})
 }
 
 func (alm *Alarm) send(title, content string, ctx Context) {
