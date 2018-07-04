@@ -1,8 +1,6 @@
 package alarm
 
 import (
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/lovego/email"
@@ -10,7 +8,7 @@ import (
 )
 
 type Sender interface {
-	Send(title, content string, count int)
+	Send(title, content string)
 }
 
 type MailSender struct {
@@ -18,21 +16,13 @@ type MailSender struct {
 	Mailer    *mailer.Mailer
 }
 
-func (m MailSender) Send(title, content string, count int) {
+func (m MailSender) Send(title, content string) {
 	if len(m.Receivers) == 0 {
 		return
 	}
-	if count > 1 {
-		title += fmt.Sprintf(` [Merged: %d]`, count)
-	}
-
-	err := m.Mailer.Send(&email.Email{
+	m.Mailer.Send(&email.Email{
 		To:      m.Receivers,
 		Subject: title,
 		Text:    []byte(content),
 	}, time.Minute)
-
-	if err != nil {
-		log.Printf("send alarm mail failed: %v", err)
-	}
 }
