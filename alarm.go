@@ -11,27 +11,46 @@ type Alarm struct {
 	sender        Sender
 	min, inc, max time.Duration // 发送间隔时间最小值，增加值，最大值
 	alarms        map[string]*alarm
+	location      *time.Location
 	sync.Mutex
 }
 
-func New(
-	prefix string, sender Sender, min, inc, max time.Duration,
-) *Alarm {
-	return &Alarm{
-		prefix: prefix,
-		sender: sender,
-		min:    min,
-		inc:    inc,
-		max:    max,
-		alarms: make(map[string]*alarm),
+type option func(*Alarm)
+
+// SetPrefix set the prefix of email title
+func SetPrefix(pre string) option {
+	return func(a *Alarm) {
+		a.prefix = pre
 	}
+}
+
+// SetLocation set the location of the `StartAt` and `EndAt` of `Context`
+func SetLocation(location *time.Location) option {
+	return func(a *Alarm) {
+		a.location = location
+	}
+}
+
+func New(sender Sender, min, inc, max time.Duration, options ...option) *Alarm {
+	a := &Alarm{
+		location: time.Now().Location(),
+		sender:   sender,
+		min:      min,
+		inc:      inc,
+		max:      max,
+		alarms:   make(map[string]*alarm),
+	}
+	for _, op := range options {
+		op(a)
+	}
+	return a
 }
 
 func (alm *Alarm) Alarm(title, content, mergeKey string) {
 	alm.Lock()
 	a := alm.alarms[mergeKey]
 	if a == nil {
-		a = &alarm{Alarm: alm, interval: alm.min}
+		a = &alarm{Alarm: alm, interval: alm.min, inc: alm.inc, max: alm.max}
 		alm.alarms[mergeKey] = a
 	}
 	alm.Unlock()
@@ -39,6 +58,6 @@ func (alm *Alarm) Alarm(title, content, mergeKey string) {
 	a.add(title, content)
 }
 
-func (alm *Alarm) send(title, content string) {
-	alm.sender.Send(alm.prefix+title, content)
+func (alm *Alarm) send(title, content string, ctx Context) {
+	alm.sender.Send(alm.prefix+title, content, ctx)
 }

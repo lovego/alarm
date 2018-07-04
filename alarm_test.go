@@ -12,9 +12,10 @@ var mutex sync.Mutex
 
 type testSenderT []string
 
-func (ts *testSenderT) Send(title, content string) {
+func (ts *testSenderT) Send(title, content string, ctx Context) {
 	mutex.Lock()
-	*ts = append(*ts, fmt.Sprintf("标题%s 内容%s", title, content))
+	*ts = append(*ts, fmt.Sprintf("标题%s [Merged: %d, Time: %s-%s] 内容%s",
+		title, ctx.Count, inTime(ctx.StartAt), inTime(ctx.EndAt), content))
 	mutex.Unlock()
 }
 
@@ -41,22 +42,37 @@ func (ts *testSenderT) empty() {
 func TestAlarm(t *testing.T) {
 	sender := &testSenderT{}
 	min := 500 * time.Millisecond
-	inc := 100 * time.Millisecond
-	max := 1 * time.Second
-	alarm := New("", sender, min, inc, max)
+	inc := time.Second
+	max := 5 * time.Second
+	location := time.Now().Location()
+	alarm := New(sender, min, inc, max, SetLocation(location))
+
+	startAt := time.Now().In(location)
+	endAt := startAt.Add(min)
+	startAtInTime := inTime(startAt)
+	endAtInTime := inTime(endAt)
 
 	sender.empty()
 	sendAlarms(alarm, map[string]int{`a`: 3, `b`: 4, `c`: 5})
 	time.Sleep(min + redundant)
 	assertEqual(t, sender, []string{
-		`标题a [Merged: 3] 内容a`, `标题b [Merged: 4] 内容b`, `标题c [Merged: 5] 内容c`,
+		fmt.Sprintf("标题a [Merged: 3, Time: %s-%s] 内容a", startAtInTime, endAtInTime),
+		fmt.Sprintf(`标题b [Merged: 4, Time: %s-%s] 内容b`, startAtInTime, endAtInTime),
+		fmt.Sprintf(`标题c [Merged: 5, Time: %s-%s] 内容c`, startAtInTime, endAtInTime),
 	})
+
+	startAt = time.Now().In(location)
+	endAt = startAt.Add(min + inc)
+	startAtInTime = inTime(startAt)
+	endAtInTime = inTime(endAt)
 
 	sender.empty()
 	sendAlarms(alarm, map[string]int{`a`: 3, `b`: 4, `c`: 5})
 	time.Sleep(inc + min + redundant)
 	assertEqual(t, sender, []string{
-		`标题a [Merged: 3] 内容a`, `标题b [Merged: 4] 内容b`, `标题c [Merged: 5] 内容c`,
+		fmt.Sprintf("标题a [Merged: 3, Time: %s-%s] 内容a", startAtInTime, endAtInTime),
+		fmt.Sprintf(`标题b [Merged: 4, Time: %s-%s] 内容b`, startAtInTime, endAtInTime),
+		fmt.Sprintf(`标题c [Merged: 5, Time: %s-%s] 内容c`, startAtInTime, endAtInTime),
 	})
 }
 

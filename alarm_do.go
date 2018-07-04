@@ -1,16 +1,19 @@
 package alarm
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
 
 type alarm struct {
 	sync.Mutex
-	title, content string
-	count          int
-	interval       time.Duration
+	title     string
+	content   string
+	count     int
+	interval  time.Duration
+	inc       time.Duration
+	max       time.Duration
+	startedAt time.Time
 	*Alarm
 }
 
@@ -22,22 +25,28 @@ func (a *alarm) add(title, content string) {
 
 	if count == 1 {
 		a.title, a.content = title, content
+		a.startedAt = time.Now().In(a.Alarm.location)
 		go a.send()
 	}
 }
 
 func (a *alarm) send() {
 	time.Sleep(a.interval)
-	a.interval += a.Alarm.inc
-	if a.interval > a.Alarm.max {
-		a.interval = a.Alarm.max
+
+	a.interval += a.inc
+	if a.interval > a.max {
+		a.interval = a.max
 	}
+
 	a.Lock()
-	count, title, content := a.count, a.title, a.content
+	count, title, content, startedAt := a.count, a.title, a.content, a.startedAt
 	a.count = 0
 	a.Unlock()
-	if count > 1 {
-		title += fmt.Sprintf(` [Merged: %d]`, count)
+
+	ctx := Context{
+		Count:   count,
+		StartAt: startedAt,
+		EndAt:   time.Now().In(a.Alarm.location),
 	}
-	a.Alarm.send(title, content)
+	a.Alarm.send(title, content, ctx)
 }
