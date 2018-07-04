@@ -58,6 +58,11 @@ func (alm *Alarm) Alarm(title, content, mergeKey string) {
 	a.add(title, content)
 }
 
+// logger will use
+func (alm *Alarm) Send(title, content string) {
+	alm.sender.Send(alm.prefix+` `+title, content, Context{})
+}
+
 func (alm *Alarm) send(title, content string, ctx Context) {
 	alm.sender.Send(alm.prefix+title, content, ctx)
 }
