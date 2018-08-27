@@ -2,6 +2,7 @@ package alarm
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/lovego/email"
@@ -30,11 +31,14 @@ func (m MailSender) Send(title, content string, ctx Context) {
 	if ctx.Count > 1 {
 		title = fmt.Sprintf("%s [merged: %d, time: %s-%s]", title, ctx.Count, inTime(ctx.StartAt), inTime(ctx.EndAt))
 	}
-	m.Mailer.Send(&email.Email{
+	err := m.Mailer.Send(&email.Email{
 		To:      m.Receivers,
 		Subject: title,
 		Text:    []byte(content),
 	}, time.Minute)
+	if err != nil {
+		log.Printf("send alarm mail failed: %v", err)
+	}
 }
 
 func inTime(t time.Time) string {
