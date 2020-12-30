@@ -66,3 +66,7 @@ func (alm *Alarm) Send(title, content string) {
 func (alm *Alarm) send(title, content string, ctx Context) {
 	alm.sender.Send(alm.prefix+title, content, ctx)
 }
+
+func (alm *Alarm) SetDuration(min, inc, max time.Duration) {
+	alm.min, alm.inc, alm.max = min, inc, max
+}
