@@ -2,78 +2,58 @@ package alarm
 
 import (
 	"fmt"
+	"sort"
 	"sync"
-	"testing"
 	"time"
 )
 
-var redundant = 100 * time.Millisecond
-var mutex sync.Mutex
+const redundant = 100 * time.Millisecond
 
-type testSenderT []string
-
-func (ts *testSenderT) Send(title, content string, ctx Context) {
-	mutex.Lock()
-	*ts = append(*ts, fmt.Sprintf("标题%s [Merged: %d, Time: %s-%s] 内容%s",
-		title, ctx.Count, inTime(ctx.StartAt), inTime(ctx.EndAt), content))
-	mutex.Unlock()
+type testSenderT struct {
+	msgs []string
+	sync.Mutex
 }
 
-func (ts *testSenderT) equal(target []string) bool {
-	if len(*ts) != len(target) {
-		return false
+func (ts *testSenderT) Send(title, content string, ctx Context) {
+	t := time.Now().UTC().Round(24 * time.Hour)
+	ctx.StartedAt, ctx.EndedAt = t, t
+	ts.Lock()
+	ts.msgs = append(ts.msgs, fmt.Sprintf("%s 标题%s 内容%s", ctx.String(), title, content))
+	ts.Unlock()
+}
+
+func (ts *testSenderT) printMsgs() {
+	sort.Strings(ts.msgs)
+	for _, msg := range ts.msgs {
+		fmt.Println(msg)
 	}
-	m := map[string]bool{}
-	for _, str := range *ts {
-		m[str] = true
-	}
-	for _, str := range target {
-		if !m[str] {
-			return false
-		}
-	}
-	return true
 }
 
 func (ts *testSenderT) empty() {
-	*ts = []string{}
+	ts.msgs = []string{}
 }
 
-func TestAlarm(t *testing.T) {
+func ExampleAlarm_test() {
 	sender := &testSenderT{}
-	min := 500 * time.Millisecond
-	inc := time.Second
-	max := 5 * time.Second
-	location := time.Now().Location()
-	alarm := New(sender, min, inc, max, SetLocation(location))
-
-	startAt := time.Now().In(location)
-	endAt := startAt.Add(min)
-	startAtInTime := inTime(startAt)
-	endAtInTime := inTime(endAt)
+	waits := []time.Duration{500 * time.Millisecond}
+	alarm := New(sender, waits)
 
 	sender.empty()
-	sendAlarms(alarm, map[string]int{`a`: 3, `b`: 4, `c`: 5})
-	time.Sleep(min + redundant)
-	assertEqual(t, sender, []string{
-		fmt.Sprintf("标题a [Merged: 3, Time: %s-%s] 内容a", startAtInTime, endAtInTime),
-		fmt.Sprintf(`标题b [Merged: 4, Time: %s-%s] 内容b`, startAtInTime, endAtInTime),
-		fmt.Sprintf(`标题c [Merged: 5, Time: %s-%s] 内容c`, startAtInTime, endAtInTime),
-	})
-
-	startAt = time.Now().In(location)
-	endAt = startAt.Add(min + inc)
-	startAtInTime = inTime(startAt)
-	endAtInTime = inTime(endAt)
+	sendAlarms(alarm, map[string]int{`a`: 1, `b`: 2, `c`: 3})
+	time.Sleep(waits[0] + redundant)
+	sender.printMsgs()
 
 	sender.empty()
-	sendAlarms(alarm, map[string]int{`a`: 3, `b`: 4, `c`: 5})
-	time.Sleep(inc + min + redundant)
-	assertEqual(t, sender, []string{
-		fmt.Sprintf("标题a [Merged: 3, Time: %s-%s] 内容a", startAtInTime, endAtInTime),
-		fmt.Sprintf(`标题b [Merged: 4, Time: %s-%s] 内容b`, startAtInTime, endAtInTime),
-		fmt.Sprintf(`标题c [Merged: 5, Time: %s-%s] 内容c`, startAtInTime, endAtInTime),
-	})
+	sendAlarms(alarm, map[string]int{`a`: 1, `b`: 2, `c`: 3})
+	time.Sleep(waits[0] + redundant)
+	sender.printMsgs()
+	// Output:
+	// [#1 0:0:0] 标题a 内容a
+	// [#1 merged:2 0:0:0] 标题b 内容b
+	// [#1 merged:3 0:0:0] 标题c 内容c
+	// [#2 0:0:0] 标题a 内容a
+	// [#2 merged:2 0:0:0] 标题b 内容b
+	// [#2 merged:3 0:0:0] 标题c 内容c
 }
 
 func sendAlarms(alarm *Alarm, alarms map[string]int) {
@@ -88,10 +68,4 @@ func sendAlarms(alarm *Alarm, alarms map[string]int) {
 		}
 	}
 	wg.Wait()
-}
-
-func assertEqual(t *testing.T, s *testSenderT, expect []string) {
-	if !s.equal(expect) {
-		t.Errorf("expect: %q\ngot: %q\n", expect, s)
-	}
 }

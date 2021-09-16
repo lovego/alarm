@@ -3,6 +3,7 @@ package alarm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/lovego/email"
@@ -10,9 +11,27 @@ import (
 )
 
 type Context struct {
-	Count   int
-	StartAt time.Time
-	EndAt   time.Time
+	SentCount   int
+	MergedCount int
+	StartedAt   time.Time
+	EndedAt     time.Time
+}
+
+func (ctx Context) String() string {
+	var strs = []string{fmt.Sprintf("[#%d", ctx.SentCount+1), "", ""}
+
+	if ctx.MergedCount > 1 {
+		strs[1] = fmt.Sprintf(" merged:%d", ctx.MergedCount)
+	}
+
+	var time string
+	if start, end := formatTime(ctx.StartedAt), formatTime(ctx.EndedAt); start == end {
+		time = start
+	} else {
+		time = fmt.Sprintf("%s~%s", start, end)
+	}
+	strs[2] = fmt.Sprintf(" %s]", time)
+	return strings.Join(strs, "")
 }
 
 type Sender interface {
@@ -28,9 +47,7 @@ func (m MailSender) Send(title, content string, ctx Context) {
 	if len(m.Receivers) == 0 {
 		return
 	}
-	if ctx.Count > 1 {
-		title = fmt.Sprintf("%s [merged: %d, time: %s-%s]", title, ctx.Count, inTime(ctx.StartAt), inTime(ctx.EndAt))
-	}
+	title = ctx.String() + title
 	err := m.Mailer.Send(&email.Email{
 		To:      m.Receivers,
 		Subject: title,
@@ -41,6 +58,6 @@ func (m MailSender) Send(title, content string, ctx Context) {
 	}
 }
 
-func inTime(t time.Time) string {
-	return fmt.Sprintf("%v:%v:%v", t.Hour(), t.Minute(), t.Second())
+func formatTime(t time.Time) string {
+	return fmt.Sprintf("%d:%d:%d", t.Hour(), t.Minute(), t.Second())
 }

@@ -7,11 +7,11 @@ import (
 )
 
 type Alarm struct {
-	prefix        string
-	sender        Sender
-	min, inc, max time.Duration // 发送间隔时间最小值，增加值，最大值
-	alarms        map[string]*alarm
-	location      *time.Location
+	prefix   string
+	sender   Sender
+	waits    []time.Duration // 报警等待时间
+	alarms   map[string]*alarm
+	location *time.Location
 	sync.Mutex
 }
 
@@ -31,13 +31,18 @@ func SetLocation(location *time.Location) option {
 	}
 }
 
-func New(sender Sender, min, inc, max time.Duration, options ...option) *Alarm {
+func New(sender Sender, waits []time.Duration, options ...option) *Alarm {
+	if len(waits) == 0 {
+		waits = []time.Duration{
+			time.Second, 10 * time.Second,
+			time.Minute, 10 * time.Minute,
+			time.Hour,
+		}
+	}
 	a := &Alarm{
 		location: time.Now().Location(),
 		sender:   sender,
-		min:      min,
-		inc:      inc,
-		max:      max,
+		waits:    waits,
 		alarms:   make(map[string]*alarm),
 	}
 	for _, op := range options {
@@ -50,7 +55,7 @@ func (alm *Alarm) Alarm(title, content, mergeKey string) {
 	alm.Lock()
 	a := alm.alarms[mergeKey]
 	if a == nil {
-		a = &alarm{Alarm: alm, interval: alm.min, inc: alm.inc, max: alm.max}
+		a = &alarm{Alarm: alm}
 		alm.alarms[mergeKey] = a
 	}
 	alm.Unlock()
@@ -58,7 +63,7 @@ func (alm *Alarm) Alarm(title, content, mergeKey string) {
 	a.add(title, content)
 }
 
-// logger will use
+// Send sent alarm directly without waiting. logger package uses this method.
 func (alm *Alarm) Send(title, content string) {
 	alm.sender.Send(alm.prefix+title, content, Context{})
 }
@@ -67,6 +72,6 @@ func (alm *Alarm) send(title, content string, ctx Context) {
 	alm.sender.Send(alm.prefix+title, content, ctx)
 }
 
-func (alm *Alarm) SetDuration(min, inc, max time.Duration) {
-	alm.min, alm.inc, alm.max = min, inc, max
+func (alm *Alarm) SetWaits(waits []time.Duration) {
+	alm.waits = waits
 }

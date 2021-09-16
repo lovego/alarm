@@ -1,0 +1,4 @@
+github.com/lovego/email v0.0.0-20181113135931-957ba59faf49 h1:vz7dt13N+klA53obPURXYBJF+7uC0kQXOJcwQUZ2HKg=
+github.com/lovego/email v0.0.0-20181113135931-957ba59faf49/go.mod h1:q2TS9lGI+TrKIQBaPwC6skyk9WhYBb9RrNXNib+T9L4=
+github.com/lovego/mailer v0.0.0-20181030105104-b930eb59d311 h1:ezqfHwd5I/6efoSscnWMgdmOxdmhAKcxFQKlt26SN/s=
+github.com/lovego/mailer v0.0.0-20181030105104-b930eb59d311/go.mod h1:SirVYZ97CvkscOWfTkqtcKn+HJwJ/gpk14mSh7SSn2U=
