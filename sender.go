@@ -25,7 +25,7 @@ func (ctx Context) String() string {
 	}
 
 	var time string
-	if start, end := formatTime(ctx.StartedAt), formatTime(ctx.EndedAt); start == end {
+	if start, end := ctx.StartedAt.Format("15:04:05"), ctx.EndedAt.Format("15:04:05"); start == end {
 		time = start
 	} else {
 		time = fmt.Sprintf("%s~%s", start, end)
@@ -56,8 +56,4 @@ func (m MailSender) Send(title, content string, ctx Context) {
 	if err != nil {
 		log.Printf("send alarm mail failed: %v", err)
 	}
-}
-
-func formatTime(t time.Time) string {
-	return fmt.Sprintf("%d:%d:%d", t.Hour(), t.Minute(), t.Second())
 }

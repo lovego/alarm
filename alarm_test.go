@@ -48,12 +48,12 @@ func ExampleAlarm_test() {
 	time.Sleep(waits[0] + redundant)
 	sender.printMsgs()
 	// Output:
-	// [#1 0:0:0] 标题a 内容a
-	// [#1 merged:2 0:0:0] 标题b 内容b
-	// [#1 merged:3 0:0:0] 标题c 内容c
-	// [#2 0:0:0] 标题a 内容a
-	// [#2 merged:2 0:0:0] 标题b 内容b
-	// [#2 merged:3 0:0:0] 标题c 内容c
+	// [#1 00:00:00] 标题a 内容a
+	// [#1 merged:2 00:00:00] 标题b 内容b
+	// [#1 merged:3 00:00:00] 标题c 内容c
+	// [#2 00:00:00] 标题a 内容a
+	// [#2 merged:2 00:00:00] 标题b 内容b
+	// [#2 merged:3 00:00:00] 标题c 内容c
 }
 
 func sendAlarms(alarm *Alarm, alarms map[string]int) {
