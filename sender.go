@@ -1,13 +1,13 @@
 package alarm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/lovego/email"
-	"github.com/lovego/mailer"
 )
 
 type Context struct {
@@ -40,7 +40,7 @@ type Sender interface {
 
 type MailSender struct {
 	Receivers []string
-	Mailer    *mailer.Mailer
+	Mailer    *email.Client
 }
 
 func (m MailSender) Send(title, content string, ctx Context) {
@@ -48,11 +48,15 @@ func (m MailSender) Send(title, content string, ctx Context) {
 		return
 	}
 	title = ctx.String() + title
-	err := m.Mailer.Send(&email.Email{
-		To:      m.Receivers,
-		Subject: title,
-		Text:    []byte(content),
-	}, time.Minute)
+	sendCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err := m.Mailer.Send(sendCtx, &email.Message{
+		Headers: []email.Header{
+			{Name: email.To, Values: m.Receivers},
+			{Name: email.Subject, Values: []string{title}},
+		},
+		Body: []byte(content),
+	})
 	if err != nil {
 		log.Printf("send alarm mail failed: %v", err)
 	}
