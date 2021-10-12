@@ -47,7 +47,7 @@ func (m MailSender) Send(title, content string, ctx Context) {
 	if len(m.Receivers) == 0 {
 		return
 	}
-	title = ctx.String() + title
+	title = ctx.String() + " " + title
 	sendCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err := m.Mailer.Send(sendCtx, &email.Message{

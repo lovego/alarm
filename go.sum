@@ -1,4 +1,4 @@
-github.com/lovego/email v0.0.2 h1:AwRq5b0Hrf0LmwgIXAhNfQN+d81Nhw8p736/dUfZxkc=
-github.com/lovego/email v0.0.2/go.mod h1:tRKrms/bVayKsHO1ULZGK9lW1mlWEu281Q+dJ7ygD1U=
-github.com/lovego/pool v0.0.3 h1:bV3YVMBJ8T2hVVA3abpyYagOzgoeT8S4dK+m9iU+Vq0=
-github.com/lovego/pool v0.0.3/go.mod h1:JL2qHUXNI8RlmDhuZpxIHJhEu+jcBWCABxxDAXRzb0w=
+github.com/lovego/email v0.0.3 h1:uabQz/uwhE0niRgtwU5aD7RDaFa7H8Y+IpDBmr2kpWM=
+github.com/lovego/email v0.0.3/go.mod h1:46Wqvlf/wq/JrtsleU4WoQL9NFfMB7Y2K+DG6Ky1ab0=
+github.com/lovego/pool v0.0.4 h1:gJJgLlT4SuKKIKiIHIwRdG54FrlHEGvS8NoNwlVhIKw=
+github.com/lovego/pool v0.0.4/go.mod h1:JL2qHUXNI8RlmDhuZpxIHJhEu+jcBWCABxxDAXRzb0w=
